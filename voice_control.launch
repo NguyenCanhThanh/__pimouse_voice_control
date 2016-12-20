@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find pimouse_ros)/pimouse.launch" /> 
+  <node pkg="pimouse_voice_control" name="julius" type="julius.py" />
+</launch>
