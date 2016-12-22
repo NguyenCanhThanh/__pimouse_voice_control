@@ -15,7 +15,18 @@ class JuliusReceiver:
             except:
                 rate.sleep()
 
-        #rospy.on_shutdown(self.sock.close)
+        rospy.on_shutdown(self.shutdown)
+        map(rospy.wait_for_service,['/timed_motion','/motor_on','/motor_off'])
+
+        #for s in ['/timed_motion','/motor_on','/motor_off']:
+        #    rospy.wait_for_service(s)
+
+        rospy.ServiceProxy('/motor_on', Trigger).call()
+        self.tm = rospy.ServiceProxy('/timed_motion', TimedMotion)
+
+    def shutdown():
+        self.sock.close()
+        rospy.ServiceProxy('/motor_off', Trigger).call()
 
     def get_line(self):
         line = ""
@@ -25,43 +36,22 @@ class JuliusReceiver:
                 return line
             line += v
 
-    def get_command(self,th):
+    def score(self,line):
+        return float(line.split('CM="')[-1].split('"')[0])
+
+    def pub_command(self,th):
         line = self.get_line()
 
-        if "WHYPO" not in line:
-	    return None
+        if "WHYPO" not in line: return None
+        if score(line) < th:    return None
 
-        score_str = line.split('CM="')[-1].split('"')[0]
-        if float(score_str) < th:
-            return None
-
-        command = None
-        if "左" in line:   command = "left"
-        elif "右" in line: command = "right"
-        elif "前" in line: command = "forward"
-        elif "後" in line: command = "backward"
-
-        return command
-
-def shutdown():
-    j.sock.close()
-    rospy.ServiceProxy('/motor_off', Trigger).call()
+        if   "左" in line: self.tm(-400,400,300) 
+        elif "右" in line: self.tm(400,-400,300)
+        elif "前" in line: self.tm(400,400,3000)
+        elif "後" in line: self.tm(-400,-400,1500)
 
 if __name__ == '__main__': 
     rospy.init_node("voice_to_command")
-    rospy.wait_for_service('/timed_motion')
-    rospy.wait_for_service('/motor_on')
-    rospy.wait_for_service('/motor_off')
-
-    rospy.ServiceProxy('/motor_on', Trigger).call()
-    tm = rospy.ServiceProxy('/timed_motion', TimedMotion)
-
-    rospy.on_shutdown(shutdown)
-
     j = JuliusReceiver()
     while not rospy.is_shutdown():
-        com = j.get_command(0.999)
-        if com == "left": tm(-400,400,300)
-        elif com == "right": tm(400,-400,300)
-        elif com == "forward": tm(400,400,3000)
-        elif com == "backward": tm(-400,-400,1500)
+        j.pub_command(0.999)
