@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+
+#motors.py
+#Copyright (c) 2016 Ryuichi Ueda <ryuichiueda@gmail.com>
+#This software is released under the MIT License.
+#http://opensource.org/licenses/mit-license.php
+
 import rospy, os
 
 def kill():

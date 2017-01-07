@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 #encoding: utf8
+
+#motors.py
+#Copyright (c) 2016 Ryuichi Ueda <ryuichiueda@gmail.com>
+#This software is released under the MIT License.
+#http://opensource.org/licenses/mit-license.php
+
 import rospy, os, socket
 
 class JuliusReceiver:
